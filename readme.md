@@ -1,84 +1,26 @@
-[![Circle CI](https://circleci.com/gh/LaurentZuijdwijk/streaming-cache/tree/master.svg?style=svg)](https://circleci.com/gh/LaurentZuijdwijk/streaming-cache/tree/master)
+Buffer to stream 
+----------------
 
-Streaming Cache
-===============
-
-Cache, queue and distribute streams immediately. Streams can be replayed immediately, even if the source is not finished.
-
-Usefull for caching (slow) streaming connections, such as S3 requests or complex database queries.  
-
-We use it to stream data into the cache and make any waiting connections for the same data queue up until the data is in the cache.
-
-If there are for example 3 requests for a certain file in close succession, then we can pipe the result for the first request into the cache. The 2 other requests will receive a stream which will start when the first one is finished.
+Create a node stream from a buffer. This can either be a complete dataset or a pending dataset.
 
 
-Installation
-------------
-
-```npm i streaming-cache --save```
-
-Quick example
--------------
+# Quick example
 
 ```javascript
 
-var Cache = require('../index.js');
-var cache = new Cache();
-var fs = require('fs');
-
-var readstream = fs.createReadStream('readme.md');
-var writestream = fs.createWriteStream('test2.txt');
-
-readstream.pipe(cache.set('a'));
-
-setTimeout(function(){
-  writestream2.write('written from cache\n\n');
-  cache.get('a').pipe(writestream);
- }, 200);
+var b = new Buffer(100);
+var stream = new BufferToStream(b);
+stream.pipe(require('fs').createWriteStream('out.dat'));
 
 ```
 
+##Methods
 
-API
----
+###setBuffer(data)
+Use this to set the dataset as complete. When finished streaming, the stream will end.
 
-##### set(key)
-returns a transform stream that can be piped to
-```
-fileStream.pipe(cache.set('key')).pipe(res);
-```
+###updateBuffer(data);
+This will replace the current dataset with data. The stream will not end when running out of data.
 
-
-##### get(key):ReadableStream 
-
-```javascript
-var cached = cache.get('key');
-if(cached){
-	cached.pipe(res);
-}
-```
-
-
-#### setData(key, data)
-A set data synchronously to stream at a later moment
-
-#### getData
-Get data with a callback. 
-
-```javascript
-cache.getData('key', function(err, data){
-	if(err){ 
-	  //handle error
-	}
-	// do something with data
-}));
-```
-#### setMetadata(key, data)
-Set metadata for a stream to be used later.
-
-#### getMetadata(key, data)
-Get metadata
-
-#### exists(key)
-returns true or false if a key exists.
-
+###appendBuffer(data);
+This will add data to the current dataset. The stream will not end when running out of data.

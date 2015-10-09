@@ -1,6 +1,6 @@
 /* jshint jasmine: true */
 'use strict';
-var ReadStream = require('../lib/readStream');
+var ReadStream = require('../');
 
 describe('readstream spec', function () {
     var readStream;
