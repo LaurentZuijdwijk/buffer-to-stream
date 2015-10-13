@@ -7,6 +7,7 @@ Create a node stream from a buffer. This can either be a complete dataset or a p
 # Quick example
 
 ```javascript
+var BufferToStream = require('buffer-to-stream');
 
 var b = new Buffer(100);
 var stream = new BufferToStream(b);

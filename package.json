@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "Create a readstream from a buffer",
   "main": "index.js",
+  "repository":"https://github.com/LaurentZuijdwijk/buffer-to-stream",
   "scripts": {
-    "test": "istanbul  cover ./node_modules/jasmine-node/bin/jasmine-node ./spec"
+    "test": "istanbul cover ./node_modules/jasmine-node/bin/jasmine-node ./spec"
   },
   "keywords": [
     "cache",
