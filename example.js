@@ -21,3 +21,6 @@ while (res) {
     console.log(res.toString())
     res = stream3.read(13)
 };
+
+var stream4 = new BufferToStream(new Buffer(100));
+stream4.pipe(require('fs').createWriteStream('out.dat'));
