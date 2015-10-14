@@ -1,7 +1,7 @@
 Buffer to stream 
 ----------------
 
-Create a node stream from a buffer. This can either be a complete dataset or a pending dataset.
+Create a node stream from a buffer. This can either be a complete dataset or an incomplete pending dataset.
 
 
 # Quick example
