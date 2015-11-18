@@ -1,42 +1,26 @@
-'use strict';
+var BufferToStream = require('.');
 
-var Cache = require('./index.js');
+var stream = new BufferToStream(new Buffer(100));
+console.log(stream.read(40));
+console.log(stream.read(40));
+console.log(stream.read(21));
+console.log(stream.read(21));
 
-var cache = new Cache();
+var stream2 = new BufferToStream('To stream or not to stream, that is the question');
+var res = stream2.read(3)
+while (res) {
+    console.log(res.toString())
+    res = stream2.read(3)
+};
 
-var fs = require('fs');
+var stream3 = new BufferToStream();
+stream3.updateBuffer('To stream or not to stream, that is the question');
+stream3.appendBuffer('bbbbb')
+var res = stream3.read(13)
+while (res) {
+    console.log(res.toString())
+    res = stream3.read(13)
+};
 
-// var readstream = fs.createReadStream('readme.md');
-// var writestream = fs.createWriteStream('test.md');
-var writestream2 = fs.createWriteStream('test2.txt');
-
-// readstream.pipe(cache.put('a'));
-// readstream.pipe(writestream);
-// readstream.pipe(process.stderr);
-
-// setTimeout(function(){
-// 	writestream2.write('written from cache\n\n');
-// 	cache.get('a').pipe(writestream2);
-// }, 200);
-
-// setTimeout(function(){}, 2000);
-
-//process.stdin.pipe(cache.put('a'));
-
-var cnt = 0;
-var s = cache.set('a')
-var intervalId = setInterval(function () {
-    if (cnt >= 5) {
-        // console.log('cnt', cnt)
-        clearInterval(intervalId)
-        cache.get('a').pipe(process.stdout);
-        s.end();
-    } else {
-        s.write(cnt + ' hello', function () {})
-        cnt++;
-    }
-}, 1000)
-
-//setTimeout(function () {
-cache.get('a').pipe(process.stdout);
-// }, 5000);
+var stream4 = new BufferToStream(new Buffer(100));
+stream4.pipe(require('fs').createWriteStream('out.dat'));

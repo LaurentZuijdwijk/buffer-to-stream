@@ -1,143 +1,68 @@
 'use strict';
 
-var cache = require('memory-cache');
+var util = require('util');
+var Readable = require('stream').Readable;
 
-var EventEmitter = require('events').EventEmitter;
-var emitters = {};
+util.inherits(ReadStream, Readable);
 
-var STATUS_PENDING = 1;
-var STATUS_DONE = 2;
-
-var ReadStream = require('./lib/readStream');
-var Transform = require('stream').Transform;
-
-var StreamingCache = function (options) {
-    if (options && options.pendingTimeout) {
-    }
-}
-
-StreamingCache.prototype.getData = function (key, cb) {
-    if (!key) {
-        throw(new Error('Key expected'));
-    }
-    if (!cb) {
-        throw(new Error('callback expected'));
-    }
-    var object = cache.get(key);
-    if (!object) {
-        cb('cache miss');
-    }
-    else if (object.status === STATUS_PENDING) {
-        emitters[key].on('error', function (err) {
-            cb(err);
-        })
-        emitters[key].on('end', function (data) {
-            cb(null, cache.get(key).data);
-        })
+function ReadStream(_buffer, options) {
+    Readable.call(this);
+    if (_buffer) {
+        this._object = _buffer;
+        this.setBuffer(_buffer);
     }
     else {
-        cb(null, object.data);
+        this._object = new Buffer(0);
+    }
+    this._offset = 0;
+}
+
+ReadStream.prototype.complete = false;
+
+ReadStream.prototype.setBuffer = function (_object) {
+    this.complete = true;
+    this._object = _object;
+    this._push();
+};
+
+ReadStream.prototype.updateBuffer = function (_object) {
+    this._object = _object;
+};
+
+ReadStream.prototype.appendBuffer = function (_object) {
+    if (typeof _object === 'string' && typeof this._object == 'string') {
+        this._object = this._object + _object;
+    }
+    else {
+        this._object = Buffer.concat([this._object, _object]);
+    }
+};
+
+ReadStream.prototype._push = function (size) {
+    if (this.ended) {
         return;
     }
-}
-
-StreamingCache.prototype.get = function (key) {
-    var object = cache.get(key);
-    var stream;
-    if (!object) {
-        return undefined;
+    if (this.complete && this._offset === this._object.length && !this._readableState.ended) {
+        this.push(null);
+        return;
     }
-    else if (object.status === STATUS_PENDING) {
-        console.log('pending')
-        stream = new ReadStream();
-        emitters[key].on('error', function (error) {
-            stream.emit('error', error);
-        });
-        emitters[key].on('end', function (data) {
-            stream.setBuffer(cache.get(key).data);
-            stream.complete = true;
-            stream.finish();
-        });
-
-        stream.setBuffer(Buffer.concat(emitters[key]._buffer));
-
-        emitters[key].on('data', function (chunk) {
-            stream.updateBuffer(Buffer.concat(emitters[key]._buffer));
-        });
-        return stream;
+    if (!size) {
+        size =  24 * 1024;
     }
-    else {
-        stream = new ReadStream();
-        stream.setBuffer(object.data);
-        stream.complete = true;
-        return stream;
+    if (!this._object.length) {
+        return;
+    }
+    if (this._offset + size > this._object.length) {
+        size = this._object.length - this._offset;
+    }
+    if (this._offset < this._object.length) {
+        var offset = this._offset;
+        this._offset += size ;
+        this.push(this._object.slice(offset, (offset + size)));
     }
 };
-
-StreamingCache.prototype.setMetadata = function (key, metadata) {
-    if (!key) {
-        throw(new Error('Key expected'));
-    }
-    var data = cache.get(key);
-    if (!data) {
-        data = {};
-    }
-    data.metadata = metadata;
-    cache.put(key, data);
+ReadStream.prototype._read = function (size) {
+    this._push(size);
 };
 
-StreamingCache.prototype.getMetadata = function (key) {
-    if (!key) {
-        throw(new Error('Key expected'));
-    }
-    var data = cache.get(key);
-    if (data && data.metadata) {
-        return data.metadata;
-    }
-    return null;
-};
-
-StreamingCache.prototype.set = function (key) {
-    if (!key) {
-        throw(new Error('Key expected'));
-    }
-    console.log('set!!!', key)
-    cache.put(key, {status : STATUS_PENDING});
-    emitters[key] = new EventEmitter();
-    emitters[key]._buffer = [];
-    var dataBuffer = emitters[key]._buffer;
-
-    var stream = new Transform();
-
-    stream._transform = function (chunk, encoding, done) {
-        dataBuffer.push(chunk);
-        emitters[key].emit('data', chunk);
-        done(null, chunk);
-    };
-
-    stream.on('error', function (err) {
-        console.log('error', err.toString())
-        cache.del(key);
-        emitters[key].emit('error', err);
-        stream.removeAllListeners();
-        emitters[key].removeAllListeners();
-        delete emitters[key];
-    });
-    stream.on('finish', function () {
-        var c = cache.get(key);
-        var buffer = Buffer.concat(dataBuffer)
-        c.metadata = c.metadata || {};
-        c.metadata.length = buffer.length;
-        c.metadata.byteLength = buffer.byteLength;
-        c.data = buffer;
-        c.status = STATUS_DONE;
-        cache.put(key, c);
-        emitters[key].emit('end');
-        delete emitters[key];
-    });
-    return stream;
-};
-
-StreamingCache.prototype.del = cache.del;
-
-module.exports = StreamingCache;
+module.exports = ReadStream;

@@ -1,16 +1,27 @@
-Streaming Cache
-===============
+Buffer to stream 
+----------------
 
-Cache and replay streams at any time. 
-
-
+Create a node stream from a buffer. This can either be a complete dataset or an incomplete pending dataset.
 
 
+# Quick example
 
+```javascript
+var BufferToStream = require('buffer-to-stream');
 
+var b = new Buffer(100);
+var stream = new BufferToStream(b);
+stream.pipe(require('fs').createWriteStream('out.dat'));
 
-We use it to stream data into the cache and make any waiting connections for the same data queue up until the data is in the cache.
+```
 
-If there are for example 3 requests for a certain file in close succession, then we can pipe the result for the first request into the cache. The 2 other requests will receive a stream which will start when the first one is finished.
+##Methods
 
-Usefull for caching streaming connections, such as S3.  
+###setBuffer(data)
+Use this to set the dataset as complete. When finished streaming, the stream will end.
+
+###updateBuffer(data);
+This will replace the current dataset with data. The stream will not end when running out of data.
+
+###appendBuffer(data);
+This will add data to the current dataset. The stream will not end when running out of data.

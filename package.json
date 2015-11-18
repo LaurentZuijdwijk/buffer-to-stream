@@ -1,10 +1,11 @@
 {
-  "name": "streaming-cache",
-  "version": "0.0.1",
-  "description": "Cache and replay NodeJS streams",
+  "name": "buffer-to-stream",
+  "version": "1.0.0",
+  "description": "Create a readstream from a buffer",
   "main": "index.js",
+  "repository":"https://github.com/LaurentZuijdwijk/buffer-to-stream",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "istanbul cover ./node_modules/jasmine-node/bin/jasmine-node ./spec"
   },
   "keywords": [
     "cache",
@@ -13,7 +14,8 @@
   ],
   "author": "Laurent Zuijdwijk",
   "license": "BSD-2-Clause",
-  "dependencies": {
-    "memory-cache": "~0.1.4"
+  "devDependencies": {
+    "istanbul": "^0.3.22",
+    "jasmine-node": "^1.14.5"
   }
 }
